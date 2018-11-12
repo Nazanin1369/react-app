@@ -10,7 +10,8 @@ class App extends React.Component {
         currentEvent: '-----',
         a: '',
         b: '',
-        value: 0
+        value: 0,
+        increasing: true
       }
 
       this.handleChange = this.handleChange.bind(this);
@@ -62,6 +63,15 @@ class App extends React.Component {
       console.log('Component will update.');
     }
 
+    componentWillReceiveProps(nextProps) {
+      this.setState({increasing: nextProps.value > this.props.value})
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+      // just prevernts rendering not the state update
+      return nextProps.value % 5 === 0;
+    }
+
     render() {
         //return React.createElement('h1', null, 'Hello Universe!');
         console.log('Component rendered');
@@ -101,6 +111,23 @@ class App extends React.Component {
     }
 }
 
+const Widget = (props) => <input type="text" onChange={props.update} />
+const Button = (props) => <button>{props.children}</button> 
+const Title = (props) => <h1>Title: {props.title}</h1> 
+
+Title.propTypes = {
+  // title: PropTypes.string.isRequired
+  title(props, propName, component) {
+    if(!(propName in props)) {
+      return new Error(`Missing ${propName}`)
+    }
+
+    if(props[propName].length < 6) {
+      return new Error(`${propName} was too short!`)
+    }
+  }
+}
+
 class Heart extends React.Component {
   render() {
     return <span>&hearts;</span>
@@ -133,20 +160,28 @@ class Wrapper extends React.Component {
   }
 }
 
-const Widget = (props) => <input type="text" onChange={props.update} />
-const Button = (props) => <button>{props.children}</button> 
-const Title = (props) => <h1>Title: {props.title}</h1> 
-
-Title.propTypes = {
-  // title: PropTypes.string.isRequired
-  title(props, propName, component) {
-    if(!(propName in props)) {
-      return new Error(`Missing ${propName}`)
+class StarWars extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      items: []
     }
+  }
 
-    if(props[propName].length < 6) {
-      return new Error(`${propName} was too short!`)
-    }
+  componentWillMount() {
+    fetch('https://swapi.co/api/people/?format=json')
+    .then(response => response.json())
+    .then( ({results: items}) => this.setState({items}));
+  }
+
+  render() {
+    let items = this.state.items;
+
+    return (
+      <div>
+        {items.map(item => <h4>{item.name}</h4>)}
+      </div>
+    );
   }
 }
 // App.propTypes = {
@@ -160,4 +195,4 @@ Title.propTypes = {
 
 //const App = () => <h1>Hello Universe!</h1>
 
-export default Wrapper;
+export default StarWars;
